@@ -10,7 +10,7 @@
 |----------|-----------|---------|---------|-----------|
 | **Language** | C# | 12.0 | Primary development language | Latest C# version included with .NET 8.0, provides modern language features (primary constructors, collection expressions), required for WinUI3 development |
 | **Runtime** | .NET | 8.0 LTS | Application runtime | Long-term support until Nov 2026, stable performance, Windows desktop optimization, includes Windows SDK integration |
-| **Framework** | Windows App SDK (WinUI3) | 1.5.240802000 | UI framework and Windows API access | Latest stable release, provides WinUI3 controls, Fluent Design System, Windows.Devices.Enumeration API access, Standard-User compatible APIs |
+| **Framework** | Windows App SDK (WinUI3) | 1.8.250907003 | UI framework and Windows API access | Latest stable release, provides WinUI3 controls, Fluent Design System, Windows.Devices.Enumeration API access, Standard-User compatible APIs, unpackaged deployment via WindowsPackageType=None |
 | **MVVM Toolkit** | CommunityToolkit.Mvvm | 8.2.2 | MVVM pattern implementation | Official Microsoft toolkit, source generators reduce boilerplate, ObservableObject/RelayCommand base classes, actively maintained |
 | **Unit Test Framework** | xUnit | 2.6.6 | Test execution engine | Industry standard for .NET, excellent VS Code integration, parallel test execution, strongly-typed assertions |
 | **Assertion Library** | FluentAssertions | 6.12.0 | Readable test assertions | Improves test readability with natural language syntax, comprehensive assertion library, reduces test code verbosity |

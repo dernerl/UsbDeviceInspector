@@ -1,0 +1,16 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch UsbDeviceInspector",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/UsbDeviceInspector/bin/x64/Debug/net8.0-windows10.0.19041.0/UsbDeviceInspector.exe",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/UsbDeviceInspector",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    }
+  ]
+}
