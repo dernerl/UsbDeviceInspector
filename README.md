@@ -1,3 +1,5 @@
+[![Build Status](https://github.com/dernerl/UsbDeviceInspector/actions/workflows/build.yml/badge.svg)](https://github.com/dernerl/UsbDeviceInspector/actions/workflows/build.yml)
+
 # USB Device Inspector
 
 A desktop application for IT administrators to enumerate USB storage devices and extract hardware identifiers. This offline tool generates formatted output for CrowdStrike Falcon Device Control policies and helpdesk ticketing systems, eliminating manual device identification workflows.

@@ -1,0 +1,38 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Install Windows App SDK Templates
+      run: dotnet new install Microsoft.WindowsAppSDK.Templates
+
+    - name: Restore dependencies
+      run: dotnet restore UsbDeviceInspector.sln
+
+    - name: Build
+      run: dotnet build UsbDeviceInspector.sln -c Release -p:Platform=x64 --no-restore
+
+    - name: Test
+      run: dotnet test UsbDeviceInspector.sln -c Release -p:Platform=x64 --no-build --verbosity normal
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: UsbDeviceInspector-win-x64
+        path: src/UsbDeviceInspector/bin/x64/Release/net8.0-windows10.0.19041.0/
+        retention-days: 30
