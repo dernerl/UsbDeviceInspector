@@ -2,6 +2,8 @@
 .ignore/
 .bmad*/
 .claude/
+web-bundles/
+tmpclaude-1707-cwd
 
 # .NET Build Artifacts
 bin/

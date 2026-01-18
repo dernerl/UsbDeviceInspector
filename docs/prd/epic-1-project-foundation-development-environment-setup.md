@@ -150,7 +150,7 @@ so that **I can verify the complete development pipeline works end-to-end**.
 3. Window title set to "USB Device Inspector"
 4. Window minimum size set to 800x600 per NFR requirements
 5. Debug build runs via VS Code F5 successfully
-6. Release build created via `dotnet build -c Release` successfully
+6. Release build created via `dotnet build -c Release -p:Platform=x64` successfully
 7. GitHub Actions workflow builds and tests successfully
 8. Application can be manually tested by running executable from `bin/Debug/` folder
 
