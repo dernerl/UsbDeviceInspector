@@ -6,20 +6,80 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-        <StackPanel>
+    <Grid Padding="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,24">
             <TextBlock
                 Text="USB Device Inspector"
                 Style="{StaticResource TitleLargeTextBlockStyle}"
-                FontSize="48"
-                HorizontalAlignment="Center"
-                Margin="0,0,0,16"/>
-            <TextBlock
-                Text="Development environment ready"
-                Style="{StaticResource SubtitleTextBlockStyle}"
-                FontSize="24"
-                Opacity="0.7"
-                HorizontalAlignment="Center"/>
+                FontSize="32"
+                HorizontalAlignment="Left"/>
         </StackPanel>
+
+        <!-- Content Area -->
+        <Grid Grid.Row="1">
+            <!-- Loading State -->
+            <StackPanel
+                x:Name="LoadingPanel"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Visibility="{x:Bind ViewModel.LoadingVisibility, Mode=OneWay}">
+                <ProgressRing
+                    IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
+                    Width="48"
+                    Height="48"
+                    Margin="0,0,0,16"/>
+                <TextBlock
+                    Text="Enumerating USB devices..."
+                    Style="{StaticResource SubtitleTextBlockStyle}"
+                    Opacity="0.7"
+                    HorizontalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Error State -->
+            <StackPanel
+                x:Name="ErrorPanel"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Visibility="{x:Bind ViewModel.ErrorVisibility, Mode=OneWay}">
+                <FontIcon
+                    Glyph="&#xE783;"
+                    FontSize="48"
+                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                    Margin="0,0,0,16"
+                    HorizontalAlignment="Center"/>
+                <TextBlock
+                    Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                    Style="{StaticResource SubtitleTextBlockStyle}"
+                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                    TextWrapping="Wrap"
+                    HorizontalAlignment="Center"
+                    MaxWidth="400"/>
+            </StackPanel>
+
+            <!-- Device Count Display (when not loading and no error) -->
+            <StackPanel
+                x:Name="ContentPanel"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Visibility="{x:Bind ViewModel.ContentVisibility, Mode=OneWay}">
+                <TextBlock
+                    Text="{x:Bind ViewModel.DeviceCountText, Mode=OneWay}"
+                    Style="{StaticResource TitleTextBlockStyle}"
+                    FontSize="24"
+                    HorizontalAlignment="Center"
+                    Margin="0,0,0,8"/>
+                <TextBlock
+                    Text="Device details will be displayed in a future update"
+                    Style="{StaticResource SubtitleTextBlockStyle}"
+                    Opacity="0.7"
+                    HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

@@ -31,6 +31,14 @@ public class DeviceEnumerationService : IDeviceEnumerationService
     private static readonly string[] SdMmcPrefixes = { "SD\\", "SDBUS\\", "MMC\\" };
 
     /// <summary>
+    /// Backing field for the last refresh timestamp.
+    /// </summary>
+    private DateTimeOffset? _lastRefreshTime;
+
+    /// <inheritdoc/>
+    public DateTimeOffset? LastRefreshTime => _lastRefreshTime;
+
+    /// <summary>
     /// Prefixes that indicate internal drives (should be excluded).
     /// </summary>
     private static readonly string[] InternalDrivePrefixes = { "SCSI\\", "SATA\\", "NVME\\", "PCIE\\", "IDE\\" };
@@ -77,7 +85,21 @@ public class DeviceEnumerationService : IDeviceEnumerationService
 
         Debug.WriteLine($"DeviceEnumerationService: Filtering complete. {filteredCount} USB storage device(s) after filtering (excluded {originalCount - filteredCount}).");
 
+        _lastRefreshTime = DateTimeOffset.UtcNow;
+
         return filteredDevices;
+    }
+
+    /// <inheritdoc/>
+    public async Task<IEnumerable<DeviceInformation>> RefreshDevicesAsync()
+    {
+        Debug.WriteLine("DeviceEnumerationService: Starting device refresh...");
+
+        var devices = await EnumerateDevicesAsync().ConfigureAwait(false);
+
+        Debug.WriteLine($"DeviceEnumerationService: Refresh complete. Found {devices.Count()} device(s). LastRefreshTime: {_lastRefreshTime}");
+
+        return devices;
     }
 
     /// <summary>

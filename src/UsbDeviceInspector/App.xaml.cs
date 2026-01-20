@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using UsbDeviceInspector.Services;
 using UsbDeviceInspector.Services.Interfaces;
+using UsbDeviceInspector.ViewModels;
 using UsbDeviceInspector.Views;
 
 namespace UsbDeviceInspector;
@@ -37,6 +38,9 @@ public partial class App : Application
 
         // Register services
         services.AddSingleton<IDeviceEnumerationService, DeviceEnumerationService>();
+
+        // Register ViewModels
+        services.AddTransient<MainViewModel>();
 
         return services.BuildServiceProvider();
     }
