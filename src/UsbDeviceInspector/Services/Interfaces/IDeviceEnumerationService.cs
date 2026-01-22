@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Windows.Devices.Enumeration;
+using UsbDeviceInspector.Models;
 
 namespace UsbDeviceInspector.Services.Interfaces;
 
@@ -24,28 +25,29 @@ public interface IDeviceEnumerationService
     /// </summary>
     /// <returns>
     /// A task that represents the asynchronous operation. The task result contains
-    /// a collection of <see cref="DeviceInformation"/> objects representing the connected USB storage devices.
-    /// Each <see cref="DeviceInformation"/> object includes the full Properties collection with additional
-    /// metadata requested during enumeration (System.ItemNameDisplay, System.Devices.Manufacturer,
-    /// System.Devices.HardwareIds, System.Devices.DeviceInstanceId).
+    /// a collection of <see cref="UsbDevice"/> objects representing the connected USB storage devices.
+    /// Each <see cref="UsbDevice"/> object is mapped from <see cref="DeviceInformation"/> with additional
+    /// metadata (System.ItemNameDisplay, System.Devices.Manufacturer, System.Devices.HardwareIds,
+    /// System.Devices.DeviceInstanceId). Returns an empty collection (not null) if no devices are found.
     /// </returns>
     /// <remarks>
     /// This method uses the Windows.Devices.Enumeration API and does not require administrator privileges.
-    /// The returned objects include extended device properties for detailed metadata parsing.
+    /// Device mapping failures are logged but do not prevent successful devices from being returned.
     /// </remarks>
-    Task<IEnumerable<DeviceInformation>> EnumerateDevicesAsync();
+    Task<IEnumerable<UsbDevice>> EnumerateDevicesAsync();
 
     /// <summary>
     /// Asynchronously refreshes the list of connected USB storage devices.
     /// </summary>
     /// <returns>
     /// A task that represents the asynchronous operation. The task result contains
-    /// the updated collection of <see cref="DeviceInformation"/> objects with full Properties collections.
+    /// the updated collection of <see cref="UsbDevice"/> objects. Returns an empty collection (not null)
+    /// if no devices are found.
     /// </returns>
     /// <remarks>
     /// This method re-enumerates all devices and updates <see cref="LastRefreshTime"/>.
     /// Any previously cached device information is implicitly replaced by the new enumeration results.
-    /// Each returned object includes extended device properties for metadata parsing.
+    /// Device mapping failures are logged but do not prevent successful devices from being returned.
     /// </remarks>
-    Task<IEnumerable<DeviceInformation>> RefreshDevicesAsync();
+    Task<IEnumerable<UsbDevice>> RefreshDevicesAsync();
 }

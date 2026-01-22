@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
+using UsbDeviceInspector.Models;
 using UsbDeviceInspector.Services;
-using Windows.Devices.Enumeration;
 using Xunit;
 
 namespace UsbDeviceInspector.Tests.Services;
@@ -88,8 +88,8 @@ public class DeviceEnumerationServiceRefreshTests
 
         // Act & Assert
         task.Should().NotBeNull("method should return a Task immediately");
-        task.Should().BeAssignableTo<Task<IEnumerable<DeviceInformation>>>(
-            "return type should be Task<IEnumerable<DeviceInformation>>");
+        task.Should().BeAssignableTo<Task<IEnumerable<UsbDevice>>>(
+            "return type should be Task<IEnumerable<UsbDevice>>");
 
         var result = await task;
         result.Should().NotBeNull("async operation should complete successfully");
@@ -166,7 +166,7 @@ public class DeviceEnumerationServiceRefreshTests
     {
         // Arrange
         var service = new DeviceEnumerationService();
-        var tasks = new List<Task<IEnumerable<DeviceInformation>>>();
+        var tasks = new List<Task<IEnumerable<UsbDevice>>>();
 
         // Act - Start multiple concurrent refresh calls
         for (int i = 0; i < 3; i++)

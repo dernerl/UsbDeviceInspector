@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using UsbDeviceInspector.Models;
 using UsbDeviceInspector.Services.Interfaces;
 using Windows.Devices.Enumeration;
 
@@ -64,7 +65,8 @@ public class DeviceEnumerationService : IDeviceEnumerationService
     /// </summary>
     /// <returns>
     /// A task that represents the asynchronous operation. The task result contains
-    /// a collection of <see cref="DeviceInformation"/> objects for USB storage devices only.
+    /// a collection of <see cref="UsbDevice"/> objects for USB storage devices only.
+    /// Returns an empty collection (not null) if no devices are found.
     /// </returns>
     /// <remarks>
     /// <para>
@@ -82,10 +84,14 @@ public class DeviceEnumerationService : IDeviceEnumerationService
     /// to enable detailed metadata parsing in subsequent processing stages.
     /// </para>
     /// <para>
+    /// Each <see cref="DeviceInformation"/> object is mapped to a <see cref="UsbDevice"/> domain model.
+    /// Mapping failures are logged but do not prevent successful devices from being returned.
+    /// </para>
+    /// <para>
     /// Performance: Completes within 3 seconds for up to 10 connected devices (NFR1).
     /// </para>
     /// </remarks>
-    public async Task<IEnumerable<DeviceInformation>> EnumerateDevicesAsync()
+    public async Task<IEnumerable<UsbDevice>> EnumerateDevicesAsync()
     {
         Debug.WriteLine("DeviceEnumerationService: Starting USB storage device enumeration...");
 
@@ -110,13 +116,34 @@ public class DeviceEnumerationService : IDeviceEnumerationService
 
         Debug.WriteLine($"DeviceEnumerationService: Filtering complete. {filteredCount} USB storage device(s) after filtering (excluded {originalCount - filteredCount}).");
 
+        // Map DeviceInformation objects to UsbDevice domain models
+        var mappedDevices = new List<UsbDevice>();
+        var successCount = 0;
+
+        foreach (var deviceInfo in filteredDevices)
+        {
+            try
+            {
+                var usbDevice = new UsbDevice(deviceInfo);
+                mappedDevices.Add(usbDevice);
+                successCount++;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"DeviceEnumerationService: Failed to map device {deviceInfo.Id}: {ex.Message}");
+                // Continue with next device
+            }
+        }
+
+        Debug.WriteLine($"DeviceEnumerationService: Mapped {successCount} out of {filteredCount} device(s) successfully.");
+
         _lastRefreshTime = DateTimeOffset.UtcNow;
 
-        return filteredDevices;
+        return mappedDevices;
     }
 
     /// <inheritdoc/>
-    public async Task<IEnumerable<DeviceInformation>> RefreshDevicesAsync()
+    public async Task<IEnumerable<UsbDevice>> RefreshDevicesAsync()
     {
         Debug.WriteLine("DeviceEnumerationService: Starting device refresh...");
 

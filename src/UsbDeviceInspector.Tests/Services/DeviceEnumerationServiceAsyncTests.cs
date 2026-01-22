@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
+using UsbDeviceInspector.Models;
 using UsbDeviceInspector.Services;
-using Windows.Devices.Enumeration;
 using Xunit;
 
 namespace UsbDeviceInspector.Tests.Services;
@@ -30,8 +30,8 @@ public class DeviceEnumerationServiceAsyncTests
 
         // Assert
         task.Should().NotBeNull("the method should return a Task immediately");
-        task.Should().BeAssignableTo<Task<IEnumerable<DeviceInformation>>>(
-            "the return type should be Task<IEnumerable<DeviceInformation>>");
+        task.Should().BeAssignableTo<Task<IEnumerable<UsbDevice>>>(
+            "the return type should be Task<IEnumerable<UsbDevice>>");
     }
 
     /// <summary>
@@ -60,7 +60,7 @@ public class DeviceEnumerationServiceAsyncTests
     {
         // Arrange
         var service = new DeviceEnumerationService();
-        var tasks = new List<Task<IEnumerable<DeviceInformation>>>();
+        var tasks = new List<Task<IEnumerable<UsbDevice>>>();
 
         // Act - Start multiple concurrent enumeration calls
         for (int i = 0; i < 3; i++)

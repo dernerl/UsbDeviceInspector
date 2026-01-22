@@ -27,6 +27,7 @@ Install these extensions for full development support:
 
 - **[C# Dev Kit](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csdevkit)** - Full C# language support, IntelliSense, debugging, and test explorer
 - **[C#](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp)** - Base C# language support (installed automatically with C# Dev Kit)
+- **[C/C++](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)** - Required for debugging WinUI3 applications (provides `cppvsdbg` debugger)
 
 ### Recommended Extensions
 
@@ -77,12 +78,13 @@ dotnet test -p:Platform=x64
 
 This project is pre-configured for VS Code debugging:
 
-1. **Open the project folder** in VS Code
-2. **Set breakpoints** by clicking in the gutter next to line numbers
-3. **Press F5** to start debugging (or use Run > Start Debugging)
-4. The application will launch with the debugger attached
+1. **Install the C/C++ extension** - Required for debugging WinUI3 apps: [C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)
+2. **Open the project folder** in VS Code
+3. **Set breakpoints** by clicking in the gutter next to line numbers
+4. **Press F5** to start debugging (or use Run > Start Debugging)
+5. The application will launch with the debugger attached
 
-The debug configuration is defined in `.vscode/launch.json` and uses the CoreCLR debugger.
+The debug configuration is defined in `.vscode/launch.json` and uses the `cppvsdbg` debugger (Visual Studio Debugger) for WinUI3 native/managed debugging. An alternative `coreclr` configuration is also available for pure managed debugging.
 
 ### Debug Tasks
 

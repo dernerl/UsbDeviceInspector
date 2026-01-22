@@ -1,0 +1,8 @@
+schema: 1
+story: '2.4'
+gate: PASS
+status_reason: 'All acceptance criteria met. RefreshDevicesAsync() and LastRefreshTime property implemented with proper async pattern. 8 unit tests passing. Build clean.'
+reviewer: 'Quinn'
+updated: '2026-01-22T14:30:00Z'
+top_issues: []
+waiver: { active: false }

@@ -1,0 +1,16 @@
+schema: 1
+story: '2.8'
+gate: CONCERNS
+status_reason: 'Service layer now returns UsbDevice domain models. Implementation complete but downstream impacts exceeded story scope - MainViewModel changes required for compilation.'
+reviewer: 'Quinn'
+updated: '2026-01-22T14:30:00Z'
+top_issues:
+  - id: 'REQ-001'
+    severity: medium
+    finding: 'Story stated "no ViewModel changes required" but interface change necessitated MainViewModel and test file updates'
+    suggested_action: 'Accept as necessary scope adjustment; update story documentation to reflect actual changes'
+  - id: 'TEST-002'
+    severity: low
+    finding: 'Partial mapping failure tests cannot be implemented due to sealed DeviceInformation type'
+    suggested_action: 'Error handling code implemented but untestable; accept defensive coding pattern as sufficient'
+waiver: { active: false }

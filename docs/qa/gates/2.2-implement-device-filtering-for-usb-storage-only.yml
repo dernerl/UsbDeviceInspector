@@ -1,0 +1,16 @@
+schema: 1
+story: '2.2'
+gate: CONCERNS
+status_reason: 'Implementation complete with 21 filtering tests. Manual validation (AC6) incomplete due to environment limitations. Critical bug fixes applied during Story 2.7.'
+reviewer: 'Quinn'
+updated: '2026-01-22T14:30:00Z'
+top_issues:
+  - id: 'TEST-001'
+    severity: low
+    finding: 'Manual validation with physical USB devices not completed in original story'
+    suggested_action: 'Validate filtering behavior on Windows machine with physical devices connected'
+  - id: 'DOC-001'
+    severity: low
+    finding: 'Bug fixes documented in Dev Agent Record but occurred outside original story scope'
+    suggested_action: 'Consider documenting cross-story bug fixes in a centralized location'
+waiver: { active: false }

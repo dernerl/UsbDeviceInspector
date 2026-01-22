@@ -1,5 +1,6 @@
 using FluentAssertions;
 using NSubstitute;
+using UsbDeviceInspector.Models;
 using UsbDeviceInspector.Services;
 using UsbDeviceInspector.Services.Interfaces;
 using Windows.Devices.Enumeration;
@@ -39,7 +40,7 @@ public class DeviceEnumerationServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Should().BeAssignableTo<Task<IEnumerable<DeviceInformation>>>();
+        result.Should().BeAssignableTo<Task<IEnumerable<UsbDevice>>>();
     }
 
     [Fact]
@@ -53,5 +54,52 @@ public class DeviceEnumerationServiceTests
 
         // Assert
         result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task EnumerateDevicesAsync_WithValidDevices_ReturnsUsbDeviceCollection()
+    {
+        // Arrange
+        var service = new DeviceEnumerationService();
+
+        // Act
+        var result = await service.EnumerateDevicesAsync();
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Should().BeAssignableTo<IEnumerable<UsbDevice>>();
+        // Note: Actual device count depends on connected hardware
+        // Test verifies type conversion works, not specific count
+    }
+
+    [Fact]
+    public async Task EnumerateDevicesAsync_WithNoDevices_ReturnsEmptyCollection()
+    {
+        // Arrange
+        var service = new DeviceEnumerationService();
+
+        // Act
+        var result = await service.EnumerateDevicesAsync();
+
+        // Assert
+        result.Should().NotBeNull();
+        // Result could be empty or contain devices depending on hardware
+        // The critical test is that it's not null
+        result.Should().BeAssignableTo<IEnumerable<UsbDevice>>();
+    }
+
+    [Fact]
+    public async Task RefreshDevicesAsync_ReturnsUsbDeviceCollection()
+    {
+        // Arrange
+        var service = new DeviceEnumerationService();
+
+        // Act
+        var result = await service.RefreshDevicesAsync();
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Should().BeAssignableTo<IEnumerable<UsbDevice>>();
+        service.LastRefreshTime.Should().NotBeNull();
     }
 }

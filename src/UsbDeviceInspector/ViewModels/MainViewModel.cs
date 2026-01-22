@@ -4,8 +4,8 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.UI.Xaml;
+using UsbDeviceInspector.Models;
 using UsbDeviceInspector.Services.Interfaces;
-using Windows.Devices.Enumeration;
 
 namespace UsbDeviceInspector.ViewModels;
 
@@ -23,7 +23,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DeviceCountText))]
     [NotifyPropertyChangedFor(nameof(ContentVisibility))]
-    private ObservableCollection<DeviceInformation> _devices = new();
+    private ObservableCollection<UsbDevice> _devices = new();
 
     /// <summary>
     /// Indicates whether device enumeration is in progress.
@@ -85,7 +85,7 @@ public partial class MainViewModel : ObservableObject
         try
         {
             var devices = await _deviceEnumerationService.EnumerateDevicesAsync();
-            Devices = new ObservableCollection<DeviceInformation>(devices);
+            Devices = new ObservableCollection<UsbDevice>(devices);
             Debug.WriteLine($"MainViewModel: Enumeration complete. Found {Devices.Count} device(s) at {DateTimeOffset.UtcNow}");
         }
         catch (Exception ex)
