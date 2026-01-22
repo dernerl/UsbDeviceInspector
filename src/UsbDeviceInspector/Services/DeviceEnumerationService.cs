@@ -49,6 +49,17 @@ public class DeviceEnumerationService : IDeviceEnumerationService
     private const string UsbPrefix = "USB\\";
 
     /// <summary>
+    /// Additional device properties requested during enumeration for detailed metadata parsing.
+    /// </summary>
+    private static readonly string[] AdditionalProperties = new[]
+    {
+        "System.ItemNameDisplay",
+        "System.Devices.Manufacturer",
+        "System.Devices.HardwareIds",
+        "System.Devices.DeviceInstanceId"
+    };
+
+    /// <summary>
     /// Asynchronously enumerates USB storage devices connected to the system.
     /// </summary>
     /// <returns>
@@ -66,6 +77,11 @@ public class DeviceEnumerationService : IDeviceEnumerationService
     /// Only devices with a <c>USB\</c> prefix in their Device Instance Path are included.
     /// </para>
     /// <para>
+    /// Additional device properties (System.ItemNameDisplay, System.Devices.Manufacturer,
+    /// System.Devices.HardwareIds, System.Devices.DeviceInstanceId) are requested during enumeration
+    /// to enable detailed metadata parsing in subsequent processing stages.
+    /// </para>
+    /// <para>
     /// Performance: Completes within 3 seconds for up to 10 connected devices (NFR1).
     /// </para>
     /// </remarks>
@@ -73,12 +89,21 @@ public class DeviceEnumerationService : IDeviceEnumerationService
     {
         Debug.WriteLine("DeviceEnumerationService: Starting USB storage device enumeration...");
 
-        var devices = await DeviceInformation.FindAllAsync(DeviceClass.PortableStorageDevice)
+        // Build AQS selector string for portable storage devices
+        string aqsFilter = "System.Devices.InterfaceClassGuid:=\"{6AC27878-A6FA-4155-BA85-F98F491D4F33}\"";
+
+        var devices = await DeviceInformation.FindAllAsync(aqsFilter, AdditionalProperties)
             .AsTask()
             .ConfigureAwait(false);
         var originalCount = devices.Count;
 
         Debug.WriteLine($"DeviceEnumerationService: Enumeration complete. Found {originalCount} device(s) before filtering.");
+
+        // Log property counts for each device
+        foreach (var device in devices)
+        {
+            Debug.WriteLine($"DeviceEnumerationService: Device {device.Id}: {device.Properties.Count} properties");
+        }
 
         var filteredDevices = FilterUsbStorageDevices(devices);
         var filteredCount = filteredDevices.Count();
@@ -100,6 +125,49 @@ public class DeviceEnumerationService : IDeviceEnumerationService
         Debug.WriteLine($"DeviceEnumerationService: Refresh complete. Found {devices.Count()} device(s). LastRefreshTime: {_lastRefreshTime}");
 
         return devices;
+    }
+
+    /// <summary>
+    /// Safely retrieves a property value from a <see cref="DeviceInformation"/> object's Properties collection.
+    /// </summary>
+    /// <typeparam name="T">The expected type of the property value.</typeparam>
+    /// <param name="device">The device information object containing the properties.</param>
+    /// <param name="propertyKey">The property key to retrieve (e.g., "System.ItemNameDisplay").</param>
+    /// <returns>
+    /// The property value cast to type <typeparamref name="T"/> if found and type-compatible;
+    /// otherwise, <c>default(T)</c> (typically <c>null</c> for reference types).
+    /// </returns>
+    /// <remarks>
+    /// <para>
+    /// This method provides null-safe property access with type checking. It handles the following scenarios:
+    /// </para>
+    /// <list type="bullet">
+    ///   <item><description>Missing property keys: Returns <c>default(T)</c></description></item>
+    ///   <item><description>Null device or Properties collection: Returns <c>default(T)</c></description></item>
+    ///   <item><description>Type mismatch: Returns <c>default(T)</c></description></item>
+    ///   <item><description>Null property values: Returns <c>default(T)</c></description></item>
+    /// </list>
+    /// <para><strong>Usage Examples:</strong></para>
+    /// <code>
+    /// string? friendlyName = DeviceEnumerationService.GetPropertyValue&lt;string&gt;(deviceInfo, "System.ItemNameDisplay");
+    /// string[]? hardwareIds = DeviceEnumerationService.GetPropertyValue&lt;string[]&gt;(deviceInfo, "System.Devices.HardwareIds");
+    /// string? manufacturer = DeviceEnumerationService.GetPropertyValue&lt;string&gt;(deviceInfo, "System.Devices.Manufacturer");
+    /// </code>
+    /// </remarks>
+    public static T? GetPropertyValue<T>(DeviceInformation? device, string propertyKey)
+    {
+        if (device?.Properties == null || !device.Properties.ContainsKey(propertyKey))
+        {
+            return default;
+        }
+
+        var value = device.Properties[propertyKey];
+        if (value is T typedValue)
+        {
+            return typedValue;
+        }
+
+        return default;
     }
 
     /// <summary>
@@ -135,13 +203,19 @@ public class DeviceEnumerationService : IDeviceEnumerationService
 
         return devices.Where(device =>
         {
-            var devicePath = device?.Id;
-            if (string.IsNullOrEmpty(devicePath))
+            if (device == null)
             {
                 return false;
             }
 
-            return IsUsbDevicePath(devicePath) && !IsInternalSdCardReaderPath(devicePath);
+            // Use DeviceInstanceId property for filtering, not device.Id
+            var deviceInstancePath = GetPropertyValue<string>(device, "System.Devices.DeviceInstanceId");
+            if (string.IsNullOrEmpty(deviceInstancePath))
+            {
+                return false;
+            }
+
+            return IsUsbDevicePath(deviceInstancePath) && !IsInternalSdCardReaderPath(deviceInstancePath);
         });
     }
 
@@ -173,8 +247,21 @@ public class DeviceEnumerationService : IDeviceEnumerationService
             }
         }
 
-        // Must start with USB\ to be considered a USB device
-        return deviceInstancePath.StartsWith(UsbPrefix, StringComparison.OrdinalIgnoreCase);
+        // Accept devices that start with USB\ prefix (direct USB enumeration)
+        if (deviceInstancePath.StartsWith(UsbPrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        // Also accept devices enumerated through WPD (Windows Portable Device) layer
+        // These have SWD\WPDBUSENUM\ prefix but contain USBSTOR in the path
+        if (deviceInstancePath.StartsWith("SWD\\WPDBUSENUM\\", StringComparison.OrdinalIgnoreCase) &&
+            deviceInstancePath.Contains("USBSTOR", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>

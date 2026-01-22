@@ -25,9 +25,13 @@ public interface IDeviceEnumerationService
     /// <returns>
     /// A task that represents the asynchronous operation. The task result contains
     /// a collection of <see cref="DeviceInformation"/> objects representing the connected USB storage devices.
+    /// Each <see cref="DeviceInformation"/> object includes the full Properties collection with additional
+    /// metadata requested during enumeration (System.ItemNameDisplay, System.Devices.Manufacturer,
+    /// System.Devices.HardwareIds, System.Devices.DeviceInstanceId).
     /// </returns>
     /// <remarks>
     /// This method uses the Windows.Devices.Enumeration API and does not require administrator privileges.
+    /// The returned objects include extended device properties for detailed metadata parsing.
     /// </remarks>
     Task<IEnumerable<DeviceInformation>> EnumerateDevicesAsync();
 
@@ -36,11 +40,12 @@ public interface IDeviceEnumerationService
     /// </summary>
     /// <returns>
     /// A task that represents the asynchronous operation. The task result contains
-    /// the updated collection of <see cref="DeviceInformation"/> objects.
+    /// the updated collection of <see cref="DeviceInformation"/> objects with full Properties collections.
     /// </returns>
     /// <remarks>
     /// This method re-enumerates all devices and updates <see cref="LastRefreshTime"/>.
     /// Any previously cached device information is implicitly replaced by the new enumeration results.
+    /// Each returned object includes extended device properties for metadata parsing.
     /// </remarks>
     Task<IEnumerable<DeviceInformation>> RefreshDevicesAsync();
 }

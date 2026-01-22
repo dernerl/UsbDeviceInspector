@@ -1,4 +1,5 @@
 using FluentAssertions;
+using NSubstitute;
 using UsbDeviceInspector.Services;
 using UsbDeviceInspector.Services.Interfaces;
 using Windows.Devices.Enumeration;
@@ -39,5 +40,18 @@ public class DeviceEnumerationServiceTests
         // Assert
         result.Should().NotBeNull();
         result.Should().BeAssignableTo<Task<IEnumerable<DeviceInformation>>>();
+    }
+
+    [Fact]
+    public void GetPropertyValue_WithNullDevice_ReturnsDefault()
+    {
+        // Arrange
+        DeviceInformation? nullDevice = null;
+
+        // Act
+        var result = DeviceEnumerationService.GetPropertyValue<string>(nullDevice, "System.ItemNameDisplay");
+
+        // Assert
+        result.Should().BeNull();
     }
 }

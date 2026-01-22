@@ -12,6 +12,12 @@
 
 **Technology Stack:** Uses `DeviceInformation.FindAllAsync()` with `DeviceClass.PortableStorageDevice` selector, all methods async/await pattern, implements retry logic for transient enumeration failures (3 attempts with 500ms backoff)
 
+**Device Detection Approach:**
+- **Primary Detection:** Direct USB enumeration with device instance paths starting with `USB\` prefix
+- **WPD Layer Support:** Also detects USB storage devices enumerated through Windows Portable Device (WPD) layer, identified by paths starting with `SWD\WPDBUSENUM\` containing `USBSTOR` pattern
+- **Property Access:** Filtering uses `System.Devices.DeviceInstanceId` property (not `device.Id` which returns GUID interface string) to inspect device instance paths
+- **Filtering Logic:** Post-enumeration filtering excludes internal SD card readers (`SD\`, `SDBUS\`, `MMC\`) and internal drives (`SCSI\`, `SATA\`, `NVME\`, `PCIE\`)
+
 ## DeviceParsingService
 
 **Responsibility:** Parses raw DeviceInformation objects to extract VID, PID, Serial Number from Device Instance Path and HardwareIds arrays, returning UsbDevice models.
