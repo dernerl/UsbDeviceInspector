@@ -73,6 +73,22 @@ public partial class UsbDevice : ObservableObject
     private string _deviceInstancePath = string.Empty;
 
     /// <summary>
+    /// Gets or sets the HardwareIds array containing device identification strings.
+    /// Contains entries like "USB\VID_0781&amp;PID_5581&amp;REV_0100" for VID/PID extraction.
+    /// Retrieved from the System.Devices.HardwareIds property.
+    /// </summary>
+    [ObservableProperty]
+    private string[] _hardwareIds = Array.Empty<string>();
+
+    /// <summary>
+    /// Gets or sets the parent device instance path.
+    /// For WPD-enumerated devices, this may contain the USB device path with VID/PID.
+    /// Retrieved from the System.Devices.Parent property.
+    /// </summary>
+    [ObservableProperty]
+    private string _parentDevicePath = string.Empty;
+
+    /// <summary>
     /// Gets or sets a value indicating whether the device was successfully parsed.
     /// Placeholder property - will be set in Epic 3 after VID/PID/SerialNumber parsing completes.
     /// </summary>
@@ -126,6 +142,16 @@ public partial class UsbDevice : ObservableObject
         _deviceInstancePath = Services.DeviceEnumerationService.GetPropertyValue<string>(
             deviceInfo,
             "System.Devices.DeviceInstanceId"
+        ) ?? string.Empty;
+
+        _hardwareIds = Services.DeviceEnumerationService.GetPropertyValue<string[]>(
+            deviceInfo,
+            "System.Devices.HardwareIds"
+        ) ?? Array.Empty<string>();
+
+        _parentDevicePath = Services.DeviceEnumerationService.GetPropertyValue<string>(
+            deviceInfo,
+            "System.Devices.Parent"
         ) ?? string.Empty;
 
         // Initialize placeholder properties (populated in Epic 3)

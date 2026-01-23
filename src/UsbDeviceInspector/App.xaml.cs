@@ -38,6 +38,7 @@ public partial class App : Application
 
         // Register services
         services.AddSingleton<IDeviceEnumerationService, DeviceEnumerationService>();
+        services.AddSingleton<IDeviceParsingService, DeviceParsingService>();
 
         // Register ViewModels
         services.AddTransient<MainViewModel>();

@@ -17,10 +17,16 @@ namespace UsbDeviceInspector.Tests.ViewModels;
 public class MainViewModelTests
 {
     private readonly IDeviceEnumerationService _mockDeviceEnumerationService;
+    private readonly IDeviceParsingService _mockDeviceParsingService;
 
     public MainViewModelTests()
     {
         _mockDeviceEnumerationService = Substitute.For<IDeviceEnumerationService>();
+        _mockDeviceParsingService = Substitute.For<IDeviceParsingService>();
+
+        // Default setup for async parsing method (called from InitializeAsync)
+        _mockDeviceParsingService.ParseDevicePropertiesAsync(Arg.Any<UsbDevice>())
+            .Returns(Task.FromResult(true));
     }
 
     #region Constructor Tests
@@ -29,17 +35,17 @@ public class MainViewModelTests
     public void Constructor_InjectsDeviceEnumerationService_Successfully()
     {
         // Arrange & Act
-        var viewModel = new MainViewModel(_mockDeviceEnumerationService);
+        var viewModel = new MainViewModel(_mockDeviceEnumerationService, _mockDeviceParsingService);
 
         // Assert
         viewModel.Should().NotBeNull();
     }
 
     [Fact]
-    public void Constructor_ThrowsArgumentNullException_WhenServiceIsNull()
+    public void Constructor_ThrowsArgumentNullException_WhenEnumerationServiceIsNull()
     {
         // Arrange & Act
-        var act = () => new MainViewModel(null!);
+        var act = () => new MainViewModel(null!, _mockDeviceParsingService);
 
         // Assert
         act.Should().Throw<ArgumentNullException>()
@@ -47,10 +53,21 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void Constructor_ThrowsArgumentNullException_WhenParsingServiceIsNull()
+    {
+        // Arrange & Act
+        var act = () => new MainViewModel(_mockDeviceEnumerationService, null!);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>()
+            .WithParameterName("deviceParsingService");
+    }
+
+    [Fact]
     public void Constructor_InitializesDevicesCollection_AsEmpty()
     {
         // Arrange & Act
-        var viewModel = new MainViewModel(_mockDeviceEnumerationService);
+        var viewModel = new MainViewModel(_mockDeviceEnumerationService, _mockDeviceParsingService);
 
         // Assert
         viewModel.Devices.Should().NotBeNull();
@@ -61,7 +78,7 @@ public class MainViewModelTests
     public void Constructor_InitializesIsLoading_AsFalse()
     {
         // Arrange & Act
-        var viewModel = new MainViewModel(_mockDeviceEnumerationService);
+        var viewModel = new MainViewModel(_mockDeviceEnumerationService, _mockDeviceParsingService);
 
         // Assert
         viewModel.IsLoading.Should().BeFalse();
@@ -71,7 +88,7 @@ public class MainViewModelTests
     public void Constructor_InitializesErrorMessage_AsNull()
     {
         // Arrange & Act
-        var viewModel = new MainViewModel(_mockDeviceEnumerationService);
+        var viewModel = new MainViewModel(_mockDeviceEnumerationService, _mockDeviceParsingService);
 
         // Assert
         viewModel.ErrorMessage.Should().BeNull();
@@ -87,7 +104,7 @@ public class MainViewModelTests
         // Arrange
         _mockDeviceEnumerationService.EnumerateDevicesAsync()
             .Returns(Task.FromResult<IEnumerable<UsbDevice>>(Array.Empty<UsbDevice>()));
-        var viewModel = new MainViewModel(_mockDeviceEnumerationService);
+        var viewModel = new MainViewModel(_mockDeviceEnumerationService, _mockDeviceParsingService);
 
         // Act
         await viewModel.InitializeAsync();
@@ -104,7 +121,7 @@ public class MainViewModelTests
         var tcs = new TaskCompletionSource<IEnumerable<UsbDevice>>();
         _mockDeviceEnumerationService.EnumerateDevicesAsync().Returns(tcs.Task);
 
-        var viewModel = new MainViewModel(_mockDeviceEnumerationService);
+        var viewModel = new MainViewModel(_mockDeviceEnumerationService, _mockDeviceParsingService);
         viewModel.PropertyChanged += (s, e) =>
         {
             if (e.PropertyName == nameof(MainViewModel.IsLoading))
@@ -131,7 +148,7 @@ public class MainViewModelTests
         // Arrange
         _mockDeviceEnumerationService.EnumerateDevicesAsync()
             .Returns(Task.FromResult<IEnumerable<UsbDevice>>(Array.Empty<UsbDevice>()));
-        var viewModel = new MainViewModel(_mockDeviceEnumerationService);
+        var viewModel = new MainViewModel(_mockDeviceEnumerationService, _mockDeviceParsingService);
 
         // Act
         await viewModel.InitializeAsync();
@@ -148,7 +165,7 @@ public class MainViewModelTests
         // For this test we verify behavior with empty collection
         _mockDeviceEnumerationService.EnumerateDevicesAsync()
             .Returns(Task.FromResult<IEnumerable<UsbDevice>>(Array.Empty<UsbDevice>()));
-        var viewModel = new MainViewModel(_mockDeviceEnumerationService);
+        var viewModel = new MainViewModel(_mockDeviceEnumerationService, _mockDeviceParsingService);
 
         // Act
         await viewModel.InitializeAsync();
@@ -165,7 +182,7 @@ public class MainViewModelTests
         var expectedException = new InvalidOperationException("Test enumeration failure");
         _mockDeviceEnumerationService.EnumerateDevicesAsync()
             .ThrowsAsync(expectedException);
-        var viewModel = new MainViewModel(_mockDeviceEnumerationService);
+        var viewModel = new MainViewModel(_mockDeviceEnumerationService, _mockDeviceParsingService);
 
         // Act
         await viewModel.InitializeAsync();
@@ -181,7 +198,7 @@ public class MainViewModelTests
         // Arrange
         _mockDeviceEnumerationService.EnumerateDevicesAsync()
             .ThrowsAsync(new InvalidOperationException("Test failure"));
-        var viewModel = new MainViewModel(_mockDeviceEnumerationService);
+        var viewModel = new MainViewModel(_mockDeviceEnumerationService, _mockDeviceParsingService);
 
         // Act
         await viewModel.InitializeAsync();
@@ -196,7 +213,7 @@ public class MainViewModelTests
         // Arrange
         _mockDeviceEnumerationService.EnumerateDevicesAsync()
             .Returns(Task.FromResult<IEnumerable<UsbDevice>>(Array.Empty<UsbDevice>()));
-        var viewModel = new MainViewModel(_mockDeviceEnumerationService);
+        var viewModel = new MainViewModel(_mockDeviceEnumerationService, _mockDeviceParsingService);
 
         // Simulate a previous error
         viewModel.GetType().GetProperty("ErrorMessage")!.SetValue(viewModel, "Previous error");
@@ -216,7 +233,7 @@ public class MainViewModelTests
     public void DeviceCountText_ReturnsCorrectFormat_WhenDevicesEmpty()
     {
         // Arrange
-        var viewModel = new MainViewModel(_mockDeviceEnumerationService);
+        var viewModel = new MainViewModel(_mockDeviceEnumerationService, _mockDeviceParsingService);
 
         // Act & Assert
         viewModel.DeviceCountText.Should().Be("0 USB device(s) found");
@@ -226,7 +243,7 @@ public class MainViewModelTests
     public void LoadingVisibility_ReturnsVisible_WhenIsLoadingTrue()
     {
         // Arrange
-        var viewModel = new MainViewModel(_mockDeviceEnumerationService);
+        var viewModel = new MainViewModel(_mockDeviceEnumerationService, _mockDeviceParsingService);
 
         // Act
         viewModel.GetType().GetProperty("IsLoading")!.SetValue(viewModel, true);
@@ -239,7 +256,7 @@ public class MainViewModelTests
     public void LoadingVisibility_ReturnsCollapsed_WhenIsLoadingFalse()
     {
         // Arrange
-        var viewModel = new MainViewModel(_mockDeviceEnumerationService);
+        var viewModel = new MainViewModel(_mockDeviceEnumerationService, _mockDeviceParsingService);
 
         // Act & Assert
         viewModel.LoadingVisibility.Should().Be(Microsoft.UI.Xaml.Visibility.Collapsed);
@@ -249,7 +266,7 @@ public class MainViewModelTests
     public void ErrorVisibility_ReturnsVisible_WhenErrorMessageIsSet()
     {
         // Arrange
-        var viewModel = new MainViewModel(_mockDeviceEnumerationService);
+        var viewModel = new MainViewModel(_mockDeviceEnumerationService, _mockDeviceParsingService);
 
         // Act
         viewModel.GetType().GetProperty("ErrorMessage")!.SetValue(viewModel, "Some error");
@@ -262,7 +279,7 @@ public class MainViewModelTests
     public void ErrorVisibility_ReturnsCollapsed_WhenErrorMessageIsNull()
     {
         // Arrange
-        var viewModel = new MainViewModel(_mockDeviceEnumerationService);
+        var viewModel = new MainViewModel(_mockDeviceEnumerationService, _mockDeviceParsingService);
 
         // Act & Assert
         viewModel.ErrorVisibility.Should().Be(Microsoft.UI.Xaml.Visibility.Collapsed);
@@ -272,7 +289,7 @@ public class MainViewModelTests
     public void ContentVisibility_ReturnsVisible_WhenNotLoadingAndNoError()
     {
         // Arrange
-        var viewModel = new MainViewModel(_mockDeviceEnumerationService);
+        var viewModel = new MainViewModel(_mockDeviceEnumerationService, _mockDeviceParsingService);
 
         // Act & Assert (default state: IsLoading=false, ErrorMessage=null)
         viewModel.ContentVisibility.Should().Be(Microsoft.UI.Xaml.Visibility.Visible);
@@ -282,7 +299,7 @@ public class MainViewModelTests
     public void ContentVisibility_ReturnsCollapsed_WhenIsLoadingTrue()
     {
         // Arrange
-        var viewModel = new MainViewModel(_mockDeviceEnumerationService);
+        var viewModel = new MainViewModel(_mockDeviceEnumerationService, _mockDeviceParsingService);
 
         // Act
         viewModel.GetType().GetProperty("IsLoading")!.SetValue(viewModel, true);
@@ -295,7 +312,7 @@ public class MainViewModelTests
     public void ContentVisibility_ReturnsCollapsed_WhenErrorMessageIsSet()
     {
         // Arrange
-        var viewModel = new MainViewModel(_mockDeviceEnumerationService);
+        var viewModel = new MainViewModel(_mockDeviceEnumerationService, _mockDeviceParsingService);
 
         // Act
         viewModel.GetType().GetProperty("ErrorMessage")!.SetValue(viewModel, "Some error");
@@ -314,7 +331,7 @@ public class MainViewModelTests
         // Arrange
         _mockDeviceEnumerationService.EnumerateDevicesAsync()
             .Returns(Task.FromResult<IEnumerable<UsbDevice>>(Array.Empty<UsbDevice>()));
-        var viewModel = new MainViewModel(_mockDeviceEnumerationService);
+        var viewModel = new MainViewModel(_mockDeviceEnumerationService, _mockDeviceParsingService);
         var changedProperties = new List<string>();
         viewModel.PropertyChanged += (s, e) => changedProperties.Add(e.PropertyName!);
 
@@ -331,7 +348,7 @@ public class MainViewModelTests
         // Arrange
         _mockDeviceEnumerationService.EnumerateDevicesAsync()
             .Returns(Task.FromResult<IEnumerable<UsbDevice>>(Array.Empty<UsbDevice>()));
-        var viewModel = new MainViewModel(_mockDeviceEnumerationService);
+        var viewModel = new MainViewModel(_mockDeviceEnumerationService, _mockDeviceParsingService);
         var isLoadingChanges = new List<bool>();
         viewModel.PropertyChanged += (s, e) =>
         {

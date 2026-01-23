@@ -57,7 +57,9 @@ public class DeviceEnumerationService : IDeviceEnumerationService
         "System.ItemNameDisplay",
         "System.Devices.Manufacturer",
         "System.Devices.HardwareIds",
-        "System.Devices.DeviceInstanceId"
+        "System.Devices.DeviceInstanceId",
+        "System.Devices.ContainerId",
+        "System.Devices.Parent"
     };
 
     /// <summary>

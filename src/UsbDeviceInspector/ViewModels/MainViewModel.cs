@@ -16,6 +16,7 @@ namespace UsbDeviceInspector.ViewModels;
 public partial class MainViewModel : ObservableObject
 {
     private readonly IDeviceEnumerationService _deviceEnumerationService;
+    private readonly IDeviceParsingService _deviceParsingService;
 
     /// <summary>
     /// The collection of enumerated USB storage devices.
@@ -65,10 +66,12 @@ public partial class MainViewModel : ObservableObject
     /// Initializes a new instance of the <see cref="MainViewModel"/> class.
     /// </summary>
     /// <param name="deviceEnumerationService">The device enumeration service for querying USB devices.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="deviceEnumerationService"/> is null.</exception>
-    public MainViewModel(IDeviceEnumerationService deviceEnumerationService)
+    /// <param name="deviceParsingService">The device parsing service for extracting VID/PID/Serial from devices.</param>
+    /// <exception cref="ArgumentNullException">Thrown when any parameter is null.</exception>
+    public MainViewModel(IDeviceEnumerationService deviceEnumerationService, IDeviceParsingService deviceParsingService)
     {
         _deviceEnumerationService = deviceEnumerationService ?? throw new ArgumentNullException(nameof(deviceEnumerationService));
+        _deviceParsingService = deviceParsingService ?? throw new ArgumentNullException(nameof(deviceParsingService));
     }
 
     /// <summary>
@@ -85,6 +88,26 @@ public partial class MainViewModel : ObservableObject
         try
         {
             var devices = await _deviceEnumerationService.EnumerateDevicesAsync();
+
+            // Parse device properties (VID/PID/Serial) for each device using async method
+            // This allows querying Windows for parent USB device info for WPD-enumerated devices
+            foreach (var device in devices)
+            {
+                // Debug: Log source data before parsing
+                Debug.WriteLine($"MainViewModel: Device '{device.FriendlyName}':");
+                Debug.WriteLine($"  DeviceInstancePath: '{device.DeviceInstancePath}'");
+                Debug.WriteLine($"  ParentDevicePath: '{device.ParentDevicePath}'");
+                Debug.WriteLine($"  HardwareIds count: {device.HardwareIds.Length}");
+                foreach (var hwId in device.HardwareIds)
+                {
+                    Debug.WriteLine($"    HardwareId: '{hwId}'");
+                }
+
+                // Use async parsing to resolve parent USB device for WPD-enumerated devices
+                var parseResult = await _deviceParsingService.ParseDevicePropertiesAsync(device);
+                Debug.WriteLine($"  Parsed result: VID={device.VendorId}, PID={device.ProductId}, Success={parseResult}");
+            }
+
             Devices = new ObservableCollection<UsbDevice>(devices);
             Debug.WriteLine($"MainViewModel: Enumeration complete. Found {Devices.Count} device(s) at {DateTimeOffset.UtcNow}");
         }
